@@ -59,7 +59,6 @@ const Admin = () => {
       setUsers(response);
       setError('');
     } catch (error) {
-      console.error('Error al cargar usuarios:', error);
       setError('Error al cargar los usuarios');
     } finally {
       setLoading(false);
@@ -78,7 +77,6 @@ const Admin = () => {
         severity: 'success'
       });
     } catch (error) {
-      console.error('Error al crear usuario:', error);
       setError(error.response?.data?.message || 'Error al crear el usuario');
     }
   };
@@ -296,4 +294,4 @@ const Admin = () => {
   );
 };
 
-export default Admin; 
+export default Admin;

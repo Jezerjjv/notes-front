@@ -61,7 +61,7 @@ const Notes = () => {
             setNotes(notesData);
             setProjects(projectsData);
         } catch (error) {
-            console.error('Error al cargar notas:', error);
+            // Eliminar todos los console.log y console.error
         } finally {
             setLoading(false);
         }
@@ -87,7 +87,7 @@ const Notes = () => {
                 await notesService.delete(noteId);
                 loadNotes();
             } catch (error) {
-                console.error('Error al eliminar nota:', error);
+                // Eliminar todos los console.log y console.error
             }
         }
     };
@@ -105,7 +105,7 @@ const Notes = () => {
             );
             loadNotes();
         } catch (error) {
-            console.error('Error al cambiar visibilidad del proyecto:', error);
+            // Eliminar todos los console.log y console.error
         }
     };
 
@@ -114,7 +114,7 @@ const Notes = () => {
             await notesService.update(noteId, { isPublic });
             loadNotes();
         } catch (error) {
-            console.error('Error al cambiar visibilidad de la nota:', error);
+            // Eliminar todos los console.log y console.error
         }
     };
 
@@ -153,7 +153,7 @@ const Notes = () => {
             setEditContent('');
             loadNotes();
         } catch (error) {
-            console.error('Error al actualizar nota:', error);
+            // Eliminar todos los console.log y console.error
         }
     };
 

@@ -33,8 +33,6 @@ const Projects = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  console.log("user en Projects.jsx:", user);
-
   useEffect(() => {
     const checkAccess = async () => {
       if (!user) {
@@ -42,7 +40,6 @@ const Projects = () => {
         return;
       }
       if (!user.isAdmin) {
-        console.log("user", user);
         navigate('/notes');
         return;
       }
@@ -57,7 +54,6 @@ const Projects = () => {
       setProjects(response.data);
       setError('');
     } catch (error) {
-      console.error('Error al cargar proyectos:', error);
       setError('Error al cargar los proyectos');
     } finally {
       setLoading(false);
@@ -78,7 +74,6 @@ const Projects = () => {
       await loadProjects();
       setError('');
     } catch (error) {
-      console.error('Error al crear proyecto:', error);
       setError('Error al crear el proyecto');
     }
   };
@@ -90,7 +85,6 @@ const Projects = () => {
         await loadProjects();
         setError('');
       } catch (error) {
-        console.error('Error al eliminar proyecto:', error);
         setError('Error al eliminar el proyecto');
       }
     }

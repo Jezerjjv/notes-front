@@ -18,7 +18,6 @@ export const notesService = {
     },
 
     update: async (id, noteData) => {
-        console.log("noteData en update", noteData);
         if (noteData.isProjectUpdate) {
             return await api.put(`/notes/global`, noteData);
         } else {
