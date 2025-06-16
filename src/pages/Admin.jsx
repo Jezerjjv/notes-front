@@ -164,7 +164,7 @@ const Admin = () => {
                               await loadUsers();
                               setSnackbar({
                                 open: true,
-                                message: `Usuario ${user.username} ahora es${e.target.checked ? '' : ' NO'} admin`,
+                                message: `Usuario ${user.username} ahora es${!e.target.checked ? '' : ' NO'} admin`,
                                 severity: 'success'
                               });
                             } catch (error) {

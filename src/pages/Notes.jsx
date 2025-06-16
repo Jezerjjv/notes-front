@@ -173,7 +173,7 @@ const Notes = () => {
                         <Typography variant="h4" component="h1" color="text.primary">
                             Notas
                         </Typography>
-                        {user?.isAdmin === 1 && (
+                        {user?.isAdmin === true && (
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -216,7 +216,7 @@ const Notes = () => {
                                 <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>
                                     {project || 'Sin Proyecto'}
                                 </Typography>
-                                {user && user.isAdmin === 1 && (
+                                {user && user.isAdmin === true && (
                                     <>
                                         <Checkbox
                                             checked={notes.every(note => !!note.isPublic)}
@@ -279,7 +279,7 @@ const Notes = () => {
                                                 >
                                                     {note.title}
                                                 </Typography>
-                                                {user && (user.isAdmin === 1 || note.UserId === user.id) && (
+                                                {user && (user.isAdmin === true || note.UserId === user.id) && (
                                                     <>
                                                         <Checkbox
                                                             checked={!!note.isPublic}

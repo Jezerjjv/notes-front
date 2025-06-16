@@ -33,6 +33,8 @@ const Projects = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  console.log("user en Projects.jsx:", user);
+
   useEffect(() => {
     const checkAccess = async () => {
       if (!user) {
@@ -40,6 +42,7 @@ const Projects = () => {
         return;
       }
       if (!user.isAdmin) {
+        console.log("user", user);
         navigate('/notes');
         return;
       }

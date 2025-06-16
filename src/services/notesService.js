@@ -8,9 +8,7 @@ export const notesService = {
 
     getNote: async (id) => {
         const user = JSON.parse(localStorage.getItem('user'));
-        const response = await api.get(`/notes/${id}`, {
-            params: { isAdmin: user?.isAdmin === 1 ? 'true' : 'false' }
-        });
+        const response = await api.get(`/notes/${id}`);
         return response.data;
     },
 
@@ -20,6 +18,7 @@ export const notesService = {
     },
 
     update: async (id, noteData) => {
+        console.log("noteData en update", noteData);
         if (noteData.isProjectUpdate) {
             return await api.put(`/notes/global`, noteData);
         } else {

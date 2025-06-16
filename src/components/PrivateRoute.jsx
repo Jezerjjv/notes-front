@@ -14,7 +14,7 @@ const PrivateRoute = ({ children, requireAdmin = false }) => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (requireAdmin && user.isAdmin !== 1) {
+    if (requireAdmin && user.isAdmin !== true) {
         return <Navigate to="/notes" replace />;
     }
 
