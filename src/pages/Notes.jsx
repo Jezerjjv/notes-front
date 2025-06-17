@@ -16,7 +16,8 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    Checkbox
+    Checkbox,
+    Tooltip
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
@@ -35,6 +36,7 @@ import { useNavigate } from 'react-router-dom';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 const Notes = () => {
     const [notes, setNotes] = useState([]);
@@ -163,8 +165,52 @@ const Notes = () => {
         setEditContent('');
     };
 
+    const CodeBlock = ({ children }) => {
+        const [copied, setCopied] = React.useState(false);
+
+        const handleCopy = () => {
+            navigator.clipboard.writeText(children);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        };
+
+        return (
+            <div style={{
+                position: 'relative',
+                background: '#23272f',
+                border: '2px solid #5ca0fa',
+                borderRadius: 6,
+                margin: '16px 0',
+                padding: '16px 32px 16px 16px',
+                fontFamily: 'monospace',
+                fontSize: '1em',
+                overflowX: 'auto'
+            }}>
+                <Tooltip title={copied ? '¡Copiado!' : 'Copiar'}>
+                    <IconButton
+                        size="small"
+                        onClick={handleCopy}
+                        style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            color: copied ? '#5ca0fa' : '#fff',
+                            background: '#181c23',
+                            border: '1px solid #5ca0fa'
+                        }}
+                    >
+                        <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+                <pre style={{ margin: 0, background: 'none', border: 'none' }}>
+                    <code>{children}</code>
+                </pre>
+            </div>
+        );
+    };
+
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, backgroundColor: '#181c23', color: '#fff', minHeight: '80vh', borderRadius: 3, p: 4 }}>
+        <Container maxWidth="xl" sx={{ width: '100%', mt: 4, backgroundColor: '#181c23', color: '#fff', minHeight: '80vh', borderRadius: 3, p: 4 }}>
             {loading ? (
                 <LoadingSpinner />
             ) : (
@@ -349,13 +395,23 @@ const Notes = () => {
                                             ) : (
                                                 <Box sx={{ mb: 2, overflowX: 'auto' }}>
                                                     <ReactMarkdown
-                                                        children={note.content || ''}
+                                                        children={note.content}
                                                         remarkPlugins={[remarkGfm]}
                                                         components={{
                                                             table: ({node, ...props}) => <table style={{width: '100%', borderCollapse: 'collapse', marginBottom: 16}} {...props} />,
                                                             th: ({isHeader, node, ...props}) => <th style={{border: '1px solid #444', padding: 8, background: '#23272f'}} {...props} />,
                                                             td: ({isHeader, node, ...props}) => <td style={{border: '1px solid #444', padding: 8}} {...props} />,
                                                             tr: ({isHeader, node, ...props}) => <tr style={{borderBottom: '1px solid #444'}} {...props} />,
+                                                            code({ node, inline, className, children, ...props }) {
+                                                                if (inline) {
+                                                                    return (
+                                                                        <span style={{ background: '#23272f', padding: '2px 4px', borderRadius: 3 }}>
+                                                                            {children}
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                                return <CodeBlock>{String(children).replace(/\n$/, '')}</CodeBlock>;
+                                                            }
                                                         }}
                                                     />
                                                 </Box>
