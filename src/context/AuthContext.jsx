@@ -30,14 +30,10 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (username, password) => {
-        try {
-            const userData = await authService.login(username, password);
-            setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
-            return userData;
-        } catch (error) {
-            throw error;
-        }
+        const userData = await authService.login(username, password);
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        return userData;
     };
 
     const logout = async () => {

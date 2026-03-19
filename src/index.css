@@ -1,11 +1,11 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #121212;
+  color: #c9d1d9;
+  background-color: #0f1113;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,19 +15,19 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #58a6ff;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #79c0ff;
 }
 
 body, html, #root {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #121212 !important;
-  color: #fff !important;
+  background-color: #0d1117 !important;
+  color: #c9d1d9 !important;
 }
 
 h1 {
@@ -42,12 +42,12 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #161b22;
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #30363d;
 }
 button:focus,
 button:focus-visible {
@@ -94,3 +94,4 @@ button:focus-visible {
   color: #2e7d32;
   margin-top: 0.5rem;
 }
+

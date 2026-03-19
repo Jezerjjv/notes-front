@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, Chip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,16 +17,35 @@ const Navbar = () => {
     }
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: '#181818', color: '#fff', boxShadow: 3 }}>
+        <AppBar
+            position="static"
+            elevation={0}
+            sx={{
+                backgroundColor: 'background.paper',
+                color: 'text.primary',
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+            }}
+        >
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#fff' }}>
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'text.primary' }}>
                     Notes App
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'center' }}>
+                    <Chip
+                        size="small"
+                        label={`Logueado: ${user.username} (${user.isAdmin ? 'admin' : 'user'})`}
+                        variant="outlined"
+                        sx={{
+                            color: 'text.secondary',
+                            borderColor: 'divider',
+                            mr: 0.5,
+                        }}
+                    />
                     <Button 
                         color="inherit" 
                         onClick={() => navigate('/notes')}
-                        sx={{ '&:hover': { backgroundColor: '#232323' }, color: '#fff' }}
+                        sx={{ '&:hover': { backgroundColor: 'action.hover' }, color: 'text.primary' }}
                     >
                         Notas
                     </Button>
@@ -34,7 +53,7 @@ const Navbar = () => {
                         <Button 
                             color="inherit" 
                             onClick={() => navigate('/projects')}
-                            sx={{ '&:hover': { backgroundColor: '#232323' }, color: '#fff' }}
+                            sx={{ '&:hover': { backgroundColor: 'action.hover' }, color: 'text.primary' }}
                         >
                             Proyectos
                         </Button>
@@ -43,7 +62,7 @@ const Navbar = () => {
                         <Button 
                             color="inherit" 
                             onClick={() => navigate('/admin')}
-                            sx={{ '&:hover': { backgroundColor: '#232323' }, color: '#fff' }}
+                            sx={{ '&:hover': { backgroundColor: 'action.hover' }, color: 'text.primary' }}
                         >
                             Admin
                         </Button>
@@ -51,7 +70,7 @@ const Navbar = () => {
                     <Button 
                         color="inherit" 
                         onClick={handleLogout}
-                        sx={{ '&:hover': { backgroundColor: '#232323' }, color: '#fff' }}
+                        sx={{ '&:hover': { backgroundColor: 'action.hover' }, color: 'text.secondary' }}
                     >
                         Cerrar Sesión
                     </Button>

@@ -1,5 +1,17 @@
 import axios from 'axios';
 
+const getStoredUser = () => {
+    const rawUser = localStorage.getItem('user');
+    if (!rawUser) return null;
+
+    try {
+        return JSON.parse(rawUser);
+    } catch (error) {
+        localStorage.removeItem('user');
+        return null;
+    }
+};
+
 const api = axios.create({
     baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
     headers: {
@@ -10,7 +22,7 @@ const api = axios.create({
 // Interceptor para agregar el token a todas las peticiones
 api.interceptors.request.use(
     (config) => {
-        const user = JSON.parse(localStorage.getItem('user'));
+        const user = getStoredUser();
         if (user?.token) {
             config.headers.Authorization = `Bearer ${user.token}`;
         }
@@ -27,7 +39,9 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('user');
-            window.location.href = '/login';
+            if (window.location.pathname !== '/login') {
+                window.location.assign('/login');
+            }
         }
         return Promise.reject(error);
     }

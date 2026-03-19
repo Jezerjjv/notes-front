@@ -85,7 +85,7 @@ const Admin = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handleToggleUserStatus = async (id, isActive, isAdmin) => {
+  const handleToggleUserStatus = async (id, isActive) => {
     try {
       await usersService.update(id, { isActive: !isActive }, currentUser.isAdmin);
       await loadUsers();
@@ -183,7 +183,7 @@ const Admin = () => {
                       <Button
                         variant="contained"
                         color={user.isActive ? 'error' : 'success'}
-                        onClick={() => handleToggleUserStatus(user.id, user.isActive, user.isAdmin)}
+                        onClick={() => handleToggleUserStatus(user.id, user.isActive)}
                         sx={{ mr: 1 }}
                       >
                         {user.isActive ? 'Desactivar' : 'Activar'}

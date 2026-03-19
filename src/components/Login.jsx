@@ -17,7 +17,7 @@ const Login = () => {
         setError('');
         setLoading(true);
         try {
-            const userData = await login(username, password);
+            await login(username, password);
             navigate('/notes');
         } catch (error) {
             if (error.response && error.response.status === 403) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import {
     Container,
     Typography,
@@ -8,65 +8,181 @@ import {
     AccordionDetails,
     Box,
     IconButton,
-    TextField,
-    Switch,
-    FormControlLabel,
-    Alert,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Checkbox,
-    Tooltip
+    Tooltip,
+    Fab,
+    Zoom
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import PublicIcon from '@mui/icons-material/Public';
-import LockIcon from '@mui/icons-material/Lock';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Menu from '@mui/material/Menu';
-import api from '../services/api';
 import authService from '../services/authService';
-import { projectsService } from '../services/projectsService';
 import { notesService } from '../services/notesService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+
+const CodeHighlighter = lazy(() => import('../components/CodeHighlighter'));
+
+const markdownRenderers = {
+    table: ({ ...props }) => (
+        <table
+            style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                marginBottom: 16,
+                background: '#161b22',
+                border: '1px solid #30363d',
+            }}
+            {...props}
+        />
+    ),
+    th: ({ ...props }) => (
+        <th
+            style={{
+                border: '1px solid #30363d',
+                padding: 10,
+                background: '#21262d',
+                textAlign: 'left',
+            }}
+            {...props}
+        />
+    ),
+    td: ({ ...props }) => (
+        <td
+            style={{
+                border: '1px solid #30363d',
+                padding: 10,
+            }}
+            {...props}
+        />
+    ),
+    blockquote: ({ ...props }) => (
+        <blockquote
+            style={{
+                margin: '12px 0',
+                padding: '8px 14px',
+                borderLeft: '4px solid #58a6ff',
+                background: '#161b22',
+                color: '#8b949e',
+            }}
+            {...props}
+        />
+    ),
+    code({ inline, className, children }) {
+        if (inline) {
+            return (
+                <code
+                    style={{
+                        background: '#161b22',
+                        border: '1px solid #30363d',
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        color: '#c9d1d9',
+                    }}
+                >
+                    {children}
+                </code>
+            );
+        }
+
+        const match = /language-(\w+)/.exec(className || '');
+        const language = match?.[1] || 'text';
+        const codeText = String(children).replace(/\n$/, '');
+
+        return (
+            <Suspense
+                fallback={
+                    <Box sx={{ borderRadius: 1.5, overflow: 'hidden', border: '1px solid #30363d', p: 2 }}>
+                        <Typography
+                            variant="caption"
+                            sx={{ display: 'block', color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+                        >
+                            {language}
+                        </Typography>
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>{codeText}</pre>
+                    </Box>
+                }
+            >
+                <CodeHighlighter language={language} codeText={codeText} />
+            </Suspense>
+        );
+    },
+};
+
+const notesUi = {
+    parentBg: '#161b22',
+    parentHover: '#21262d',
+    parentBorder: '#30363d',
+    childBg: '#1c2128',
+    childHover: '#232a32',
+    childBorder: '#30363d',
+    accent: '#58a6ff',
+    icon: '#8b949e',
+};
 
 const Notes = () => {
-    const [notes, setNotes] = useState([]);
     const [projects, setProjects] = useState({});
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [menuNoteId, setMenuNoteId] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [editingNote, setEditingNote] = useState(null);
-    const [editTitle, setEditTitle] = useState('');
-    const [editContent, setEditContent] = useState('');
+    const [showGlobalScrollTop, setShowGlobalScrollTop] = useState(false);
+    const [expandedNotes, setExpandedNotes] = useState({});
     const navigate = useNavigate();
     const user = authService.getCurrentUser();
 
-    useEffect(() => {
-        loadNotes();
-    }, []);
-
-    const loadNotes = async () => {
+    const loadNotes = useCallback(async () => {
         setLoading(true);
         try {
             const response = await notesService.getAll();
             const notesData = response;
             const projectsData = groupNotesByProject(notesData);
-            setNotes(notesData);
             setProjects(projectsData);
         } catch (error) {
             // Eliminar todos los console.log y console.error
         } finally {
             setLoading(false);
         }
+    }, []);
+
+    useEffect(() => {
+        loadNotes();
+    }, [loadNotes]);
+
+    useEffect(() => {
+        const onScroll = () => {
+            setShowGlobalScrollTop(window.scrollY > 280);
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    const handleScrollToNoteTop = (noteId) => {
+        const noteElement = document.getElementById(`note-${noteId}`);
+        if (noteElement) {
+            noteElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    const handleGlobalScrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleProjectExpandToggle = (projectNotes) => {
+        const allExpanded = projectNotes.length > 0 && projectNotes.every((n) => !!expandedNotes[n.id]);
+        setExpandedNotes((prev) => {
+            const next = { ...prev };
+            projectNotes.forEach((note) => {
+                next[note.id] = !allExpanded;
+            });
+            return next;
+        });
     };
 
     const groupNotesByProject = (notes) => {
@@ -120,97 +236,8 @@ const Notes = () => {
         }
     };
 
-    const handleEditClick = (note, e) => {
-        e.stopPropagation();
-        setEditingNote(note);
-        setEditTitle(note.title);
-        setEditContent(note.content);
-    };
-
-    const handleMenuOpen = (event, noteId) => {
-        setAnchorEl(event.currentTarget);
-        setMenuNoteId(noteId);
-    };
-
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-        setMenuNoteId(null);
-    };
-
-    const handleNoteClick = (note, e) => {
-        e.stopPropagation();
-        navigate(`/notes/${note.id}`);
-    };
-
-    const handleSaveEdit = async () => {
-        try {
-            await notesService.update(editingNote.id, {
-                ...editingNote,
-                title: editTitle,
-                content: editContent,
-                ProjectId: editingNote.ProjectId
-            });
-            setEditingNote(null);
-            setEditTitle('');
-            setEditContent('');
-            loadNotes();
-        } catch (error) {
-            // Eliminar todos los console.log y console.error
-        }
-    };
-
-    const handleCancelEdit = () => {
-        setEditingNote(null);
-        setEditTitle('');
-        setEditContent('');
-    };
-
-    const CodeBlock = ({ children }) => {
-        const [copied, setCopied] = React.useState(false);
-
-        const handleCopy = () => {
-            navigator.clipboard.writeText(children);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-        };
-
-        return (
-            <div style={{
-                position: 'relative',
-                background: '#23272f',
-                border: '2px solid #5ca0fa',
-                borderRadius: 6,
-                margin: '16px 0',
-                padding: '16px 32px 16px 16px',
-                fontFamily: 'monospace',
-                fontSize: '1em',
-                overflowX: 'auto'
-            }}>
-                <Tooltip title={copied ? '¡Copiado!' : 'Copiar'}>
-                    <IconButton
-                        size="small"
-                        onClick={handleCopy}
-                        style={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            color: copied ? '#5ca0fa' : '#fff',
-                            background: '#181c23',
-                            border: '1px solid #5ca0fa'
-                        }}
-                    >
-                        <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                </Tooltip>
-                <pre style={{ margin: 0, background: 'none', border: 'none' }}>
-                    <code>{children}</code>
-                </pre>
-            </div>
-        );
-    };
-
     return (
-        <Container maxWidth="xl" sx={{ width: '100%', mt: 4, backgroundColor: '#181c23', color: '#fff', minHeight: '80vh', borderRadius: 3, p: 4 }}>
+        <Container maxWidth="xl" sx={{ width: '100%', mt: 4, backgroundColor: 'background.paper', color: 'text.primary', minHeight: '80vh', borderRadius: 3, p: 4 }}>
             {loading ? (
                 <LoadingSpinner />
             ) : (
@@ -234,12 +261,14 @@ const Notes = () => {
                     {Object.entries(projects).map(([ProjectId, { project, notes }]) => (
                         <Accordion 
                             key={ProjectId} 
+                            TransitionProps={{ timeout: 0, unmountOnExit: true }}
                             sx={{ 
                                 mb: 2,
-                                backgroundColor: '#23272f',
-                                color: '#fff',
-                                border: 'none',
-                                boxShadow: 'none',
+                                backgroundColor: notesUi.parentBg,
+                                color: 'text.primary',
+                                border: '1px solid',
+                                borderColor: notesUi.parentBorder,
+                                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
                                 borderRadius: 2,
                                 '&:before': { display: 'none' },
                             }}
@@ -247,13 +276,13 @@ const Notes = () => {
                             <AccordionSummary 
                                 expandIcon={<ExpandMoreIcon />}
                                 sx={{
-                                    backgroundColor: '#23272f',
-                                    color: '#fff',
+                                    backgroundColor: notesUi.parentBg,
+                                    color: 'text.primary',
                                     fontWeight: 600,
                                     fontSize: '1.2rem',
                                     borderRadius: 1,
                                     '&:hover': {
-                                        backgroundColor: '#2d3542',
+                                        backgroundColor: notesUi.parentHover,
                                     },
                                     display: 'flex',
                                     alignItems: 'center',
@@ -262,14 +291,37 @@ const Notes = () => {
                                 <Typography variant="h6" color="inherit" sx={{ flexGrow: 1 }}>
                                     {project || 'Sin Proyecto'}
                                 </Typography>
+                                <Tooltip
+                                    title={
+                                        notes.length > 0 && notes.every((n) => !!expandedNotes[n.id])
+                                            ? 'Comprimir todas las notas'
+                                            : 'Expandir todas las notas'
+                                    }
+                                    arrow
+                                >
+                                    <IconButton
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleProjectExpandToggle(notes);
+                                        }}
+                                        size="small"
+                                        sx={{ color: notesUi.icon, ml: 1 }}
+                                    >
+                                        {notes.length > 0 && notes.every((n) => !!expandedNotes[n.id]) ? (
+                                            <UnfoldLessIcon fontSize="small" />
+                                        ) : (
+                                            <UnfoldMoreIcon fontSize="small" />
+                                        )}
+                                    </IconButton>
+                                </Tooltip>
                                 {user && user.isAdmin === true && (
                                     <>
                                         <Checkbox
                                             checked={notes.every(note => !!note.isPublic)}
                                             onClick={e => e.stopPropagation()}
                                             onChange={(e) => handleToggleProjectVisibility(ProjectId, e.target.checked)}
-                                            color="success"
-                                            sx={{ ml: 1 }}
+                                            color="primary"
+                                            sx={{ ml: 1, color: notesUi.icon }}
                                         />
                                         <IconButton
                                             onClick={(e) => { 
@@ -277,7 +329,7 @@ const Notes = () => {
                                                 navigate(`/notes/new?projectId=${ProjectId}`);
                                             }}
                                             size="small"
-                                            sx={{ color: '#5ca0fa', ml: 1 }}
+                                            sx={{ color: notesUi.icon, ml: 1 }}
                                         >
                                             <AddIcon />
                                         </IconButton>
@@ -288,25 +340,35 @@ const Notes = () => {
                                 {notes.map((note) => (
                                     <Accordion 
                                         key={note.id} 
+                                        id={`note-${note.id}`}
+                                        expanded={!!expandedNotes[note.id]}
+                                        onChange={(_, isExpanded) => {
+                                            setExpandedNotes((prev) => ({ ...prev, [note.id]: isExpanded }));
+                                        }}
+                                        TransitionProps={{ timeout: 0, unmountOnExit: true }}
                                         sx={{ 
                                             mb: 2,
-                                            backgroundColor: '#23272f',
-                                            color: '#fff',
-                                            border: 'none',
-                                            boxShadow: 'none',
+                                            ml: 2,
+                                            backgroundColor: notesUi.childBg,
+                                            color: 'text.primary',
+                                            border: '1px solid',
+                                            borderColor: notesUi.childBorder,
+                                            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
                                             '&:before': { display: 'none' },
+                                            borderLeft: `3px solid ${notesUi.accent}`,
+                                            borderRadius: 1.5,
                                         }}
                                     >
                                         <Box sx={{ 
                                             display: 'flex', 
                                             alignItems: 'center',
-                                            backgroundColor: '#23272f',
-                                            color: '#fff',
+                                            backgroundColor: notesUi.childBg,
+                                            color: 'text.primary',
                                             borderRadius: 2,
                                             px: 2,
                                             py: 1,
                                             '&:hover': {
-                                                backgroundColor: '#2d3542',
+                                                backgroundColor: notesUi.childHover,
                                             },
                                         }}>
                                             <AccordionSummary 
@@ -319,7 +381,7 @@ const Notes = () => {
                                                         flexGrow: 1,
                                                         cursor: 'pointer',
                                                         '&:hover': {
-                                                            color: '#5ca0fa'
+                                                            color: notesUi.icon,
                                                         }
                                                     }}
                                                 >
@@ -333,22 +395,30 @@ const Notes = () => {
                                                             onChange={async (e) => {
                                                                 await handleToggleNoteVisibility(note.id, e.target.checked);
                                                             }}
-                                                            color="success"
-                                                            sx={{ ml: 1 }}
+                                                            color="primary"
+                                                            sx={{ ml: 1, color: notesUi.icon }}
                                                         />
                                                         <IconButton
                                                             onClick={() => navigate(`/notes/${note.id}`)}
-                                                            color="primary"
+                                                            color="inherit"
                                                             size="small"
-                                                            sx={{ ml: 1 }}
+                                                            sx={{ ml: 1, color: notesUi.icon }}
                                                         >
                                                             <VisibilityIcon />
                                                         </IconButton>
                                                         <IconButton
-                                                            onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
-                                                            color="error"
+                                                            onClick={() => navigate(`/notes/${note.id}?edit=1`)}
+                                                            color="inherit"
                                                             size="small"
-                                                            sx={{ ml: 1 }}
+                                                            sx={{ ml: 1, color: notesUi.icon }}
+                                                        >
+                                                            <EditIcon />
+                                                        </IconButton>
+                                                        <IconButton
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
+                                                            color="inherit"
+                                                            size="small"
+                                                            sx={{ ml: 1, color: notesUi.icon }}
                                                         >
                                                             <DeleteIcon />
                                                         </IconButton>
@@ -356,66 +426,49 @@ const Notes = () => {
                                                 )}
                                             </AccordionSummary>
                                         </Box>
-                                        <AccordionDetails>
-                                            {editingNote && editingNote.id === note.id ? (
-                                                <Box sx={{ p: 2 }}>
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Título"
-                                                        value={editTitle}
-                                                        onChange={(e) => setEditTitle(e.target.value)}
-                                                        sx={{ mb: 2 }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Contenido"
-                                                        multiline
-                                                        rows={4}
-                                                        value={editContent}
-                                                        onChange={(e) => setEditContent(e.target.value)}
-                                                        sx={{ mb: 2 }}
-                                                    />
-                                                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                                                        <Button 
-                                                            variant="outlined" 
-                                                            onClick={handleCancelEdit}
-                                                            sx={{ color: '#fff', borderColor: '#fff' }}
-                                                        >
-                                                            Cancelar
-                                                        </Button>
-                                                        <Button 
-                                                            variant="contained" 
-                                                            onClick={handleSaveEdit}
-                                                            disabled={!editTitle || !editContent}
-                                                        >
-                                                            Guardar
-                                                        </Button>
-                                                    </Box>
-                                                </Box>
-                                            ) : (
-                                                <Box sx={{ mb: 2, overflowX: 'auto' }}>
-                                                    <ReactMarkdown
-                                                        children={note.content}
-                                                        remarkPlugins={[remarkGfm]}
-                                                        components={{
-                                                            table: ({node, ...props}) => <table style={{width: '100%', borderCollapse: 'collapse', marginBottom: 16}} {...props} />,
-                                                            th: ({isHeader, node, ...props}) => <th style={{border: '1px solid #444', padding: 8, background: '#23272f'}} {...props} />,
-                                                            td: ({isHeader, node, ...props}) => <td style={{border: '1px solid #444', padding: 8}} {...props} />,
-                                                            tr: ({isHeader, node, ...props}) => <tr style={{borderBottom: '1px solid #444'}} {...props} />,
-                                                            code({ node, inline, className, children, ...props }) {
-                                                                if (inline) {
-                                                                    return (
-                                                                        <span style={{ background: '#23272f', padding: '2px 4px', borderRadius: 3 }}>
-                                                                            {children}
-                                                                        </span>
-                                                                    );
-                                                                }
-                                                                return <CodeBlock>{String(children).replace(/\n$/, '')}</CodeBlock>;
-                                                            }
+                                        <AccordionDetails sx={{ position: 'relative' }}>
+                                            <Box
+                                                sx={{
+                                                    position: 'sticky',
+                                                    top: 88,
+                                                    zIndex: 3,
+                                                    display: 'flex',
+                                                    justifyContent: 'flex-end',
+                                                    mb: 1,
+                                                    pointerEvents: 'none',
+                                                }}
+                                            >
+                                                <Tooltip title="Subir al inicio de esta nota" arrow placement="left">
+                                                    <IconButton
+                                                        size="medium"
+                                                        aria-label="Subir al inicio de esta nota"
+                                                        onClick={() => handleScrollToNoteTop(note.id)}
+                                                        sx={{
+                                                            pointerEvents: 'auto',
+                                                            width: 36,
+                                                            height: 36,
+                                                            color: 'primary.contrastText',
+                                                            border: '1px solid',
+                                                            borderColor: 'primary.dark',
+                                                            backgroundColor: 'primary.main',
+                                                            boxShadow: '0 6px 14px rgba(0,0,0,0.25)',
+                                                            '&:hover': {
+                                                                backgroundColor: 'primary.dark',
+                                                                transform: 'translateY(-1px)',
+                                                            },
                                                         }}
-                                                    />
-                                                </Box>
-                                            )}
+                                                    >
+                                                        <KeyboardArrowUpIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                            <Box sx={{ mb: 2, overflowX: 'auto' }}>
+                                                <ReactMarkdown
+                                                    children={note.content}
+                                                    remarkPlugins={[remarkGfm]}
+                                                    components={markdownRenderers}
+                                                />
+                                            </Box>
                                             <Typography 
                                                 variant="body2" 
                                                 color="text.secondary"
@@ -431,6 +484,24 @@ const Notes = () => {
                     ))}
                 </>
             )}
+            <Zoom in={showGlobalScrollTop}>
+                <Tooltip title="Subir al inicio" arrow placement="left">
+                    <Fab
+                        color="primary"
+                        size="medium"
+                        aria-label="Subir al inicio"
+                        onClick={handleGlobalScrollToTop}
+                        sx={{
+                            position: 'fixed',
+                            bottom: 24,
+                            right: 24,
+                            zIndex: 1400,
+                        }}
+                    >
+                        <KeyboardArrowUpIcon />
+                    </Fab>
+                </Tooltip>
+            </Zoom>
         </Container>
     );
 };

@@ -2,14 +2,10 @@ import api from './api';
 
 const authService = {
     async login(username, password) {
-        try {
-            const response = await api.post('/auth/login', { username, password });
-            const user = response.data;
-            localStorage.setItem('user', JSON.stringify(user));
-            return user;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.post('/auth/login', { username, password });
+        const user = response.data;
+        localStorage.setItem('user', JSON.stringify(user));
+        return user;
     },
 
     async register(username, password) {

@@ -22,6 +22,17 @@ export default defineConfig(({ mode }) => {
           path.resolve(__dirname, '..')
         ]
       }
-    }
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom', 'react-router-dom'],
+            mui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+            markdown: ['@uiw/react-md-editor', '@uiw/react-markdown-preview', 'react-markdown', 'remark-gfm']
+          }
+        }
+      }
+    },
   }
 })

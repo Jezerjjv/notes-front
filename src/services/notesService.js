@@ -7,7 +7,6 @@ export const notesService = {
     },
 
     getNote: async (id) => {
-        const user = JSON.parse(localStorage.getItem('user'));
         const response = await api.get(`/notes/${id}`);
         return response.data;
     },
