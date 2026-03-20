@@ -49,6 +49,13 @@ const Navbar = () => {
                     >
                         Notas
                     </Button>
+                    <Button
+                        color="inherit"
+                        onClick={() => navigate('/calendar')}
+                        sx={{ '&:hover': { backgroundColor: 'action.hover' }, color: 'text.primary' }}
+                    >
+                        Calendario
+                    </Button>
                     {user.isAdmin && (
                         <Button 
                             color="inherit" 

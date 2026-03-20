@@ -12,6 +12,7 @@ const Notes = lazy(() => import('./pages/Notes'));
 const NoteDetail = lazy(() => import('./pages/NoteDetail'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Admin = lazy(() => import('./pages/Admin'));
+const Calendar = lazy(() => import('./pages/Calendar'));
 
 const AppContent = () => {
   const { user } = useAuth();
@@ -46,6 +47,11 @@ const AppContent = () => {
           <Route path="/admin" element={
             <PrivateRoute requireAdmin>
               <Admin />
+            </PrivateRoute>
+          } />
+          <Route path="/calendar" element={
+            <PrivateRoute>
+              <Calendar />
             </PrivateRoute>
           } />
           <Route path="/" element={<Navigate to="/login" />} />
