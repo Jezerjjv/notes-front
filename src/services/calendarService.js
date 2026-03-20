@@ -33,8 +33,8 @@ export const calendarService = {
     },
 
     /** status: 'normal' | 'vacaciones' | 'festivo' */
-    setDayStatus: async (workDate, status) => {
-        const response = await api.put('/calendar/day-status', { workDate, status });
+    setDayStatus: async (workDate, status, holidayName = '') => {
+        const response = await api.put('/calendar/day-status', { workDate, status, holidayName });
         return response.data;
     },
 };
